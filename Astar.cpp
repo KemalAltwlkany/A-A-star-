@@ -73,7 +73,7 @@ bool operator==(node s1, node s2){
     return ( (s1.x==s2.x) && (s1.y==s2.y) );
 }
 
-//main class of this program. Allows operations such as generating a map, printing the map as a matrix of integers.
+//core class of this program. Allows operations such as generating a map, printing the map as a matrix of integers.
 // contains all sub-functions required to run algorithms such as the A-star.
 class mapp{
     std::vector<std::vector<int> > matrix; // the "map"
@@ -97,12 +97,13 @@ public:
         void Path_extraction();
         void Pass_to_MATLAB();
 };
-
-//Creates a txt file which contains map data (the map data has inherited the shortest path.
-//MATLAB uses the txt file to create an matrix and present it as an image.
+/*This function is optional and not required in order to run A*. It's purpose is to pass the results of A*
+to MATLAB in order to plot them there or use them for further needs.
+This function only creates a .txt file which contains the matrix data. A MATLAB script is used afterwards to extract the
+data from the txt file and plot it. */
 void mapp::Pass_to_MATLAB(){
-    //enter file path bellow
-    std::ofstream output("E:\\Docs\\Some_folder\\matrixdata.txt");
+    //enter desired file path in line bellow
+    std::ofstream output("E:\\Example\\Example_folder\\matrixdata.txt");
     if (!output){
         std::cout << "Error while creating the matrixdata.txt file!" << std::endl;
         return;
@@ -202,7 +203,7 @@ void mapp::Filter_obstacles(){
 
 
 /* The following function updates the list -neighbours-, depending on where the current node is. The function is long
-and appears not optimized, but on the contrary it is much faster than resolving it with 9 if statements which would be
+and appears not optimized, but on the contrary it is much faster than resolving it with 9 if statements which would've been
 put in a nested 3x3 for loop */
 void mapp::Update_neighbours(node s){
         //node in corner (0,0)
@@ -280,7 +281,9 @@ void mapp::Update_neighbours(node s){
         neighbours.insert( neighbours.end(), node(s.x+1,s.y+1) );
         return;
 }
-
+/*If the map is obtained from sources other than this function, it can be skipped or edited.
+The important thing is to update the rows attributes of class instance mapp.
+(rows, columns, m, n, matrix, start and goal node (6 attributes)). */
 void mapp::Generate_mapp(){
     int row,column;
     std::cout << "\n          " << "Enter the number of rows: ";
@@ -290,7 +293,7 @@ void mapp::Generate_mapp(){
     std::cin >> column;
     if( column<1 ) std::cout << "ERROR!";
     std::vector<std::vector<int> > temp(row, std::vector<int> (column,0));
-    matrix=temp;
+    matrix=std::move(temp);
     rows=row;
     columns=column;
     m=row-1;
@@ -381,9 +384,14 @@ void mapp::Generate_mapp(){
             break;
         }
     };
-//UNCOMMENT to see map preview!
-//  std::cout << "\n        Here's a map preview!";
-//  (*this).Print_mapp();
+    int preview(0);
+    std::cout << "\n        Would you like to see a map preview?";
+    std::cout << "\n        No - 0, Yes - any integer";
+    std::cin >> preview;
+    if (preview){
+        std::cout << "\n        Here's a map preview!";
+        (*this).Print_mapp();
+    }
     int x,y;
     while(1){
         std::cout << "\n        Enter the start node coordinates:";
@@ -413,6 +421,7 @@ void mapp::Generate_mapp(){
     goal.y=y;
 }
 
+//Function that prints the mapp
 void mapp::Print_mapp(){
     std::cout << std::endl;
     for(int i=0; i<rows; i++){
@@ -434,10 +443,14 @@ void mapp::Test_mapp_functionality(){
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     double dif = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
     std::cout << "\nTime elapsed: " << dif;
-    //(*this).Print_mapp();
+    std::cout << "\n        Would you like a map preview (no -0, yes - any)";
+    int preview(0);
+    std::cin >> preview;
+    if(preview){ (*this).Print_mapp(); }
     //(*this).Pass_to_MATLAB(); ONLY UNCOMMENT if the pass to matlab function has been appropriately  modified!
 }
 
+//Essential function. Runs A* on a given instance of class mapp.
 void mapp::Astar(){
     //initialize by setting start node parameters
     start.g_inf=false;
